@@ -4,13 +4,29 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Main {
 
-	static HashMap<MapPair, LinkedList<Document>> fullDataSet;
+	static HashMap<MapPair, LinkedList<Document>> fullDataSet = new HashMap<MapPair, LinkedList<Document>>();
+	static String[] companyList = { "MMM", "AXP", "AAPL", "BA", "CAT",
+									"CVX", "CSCO", "KO", "DD", "XOM",
+									"GE", "GS", "HD", "INTC", "IBM",
+									"JNJ", "JPM", "MCD", "MRK", "MSFT",
+									"NKE", "PFE", "PG", "TRV", "UNH",
+									"UTX", "VZ", "V", "WMT", "DIS" };
+	
 	
 	
 	/**
@@ -36,84 +52,160 @@ public class Main {
 	 *			the MapPair, LinkedList key-value set into the fullDataSet HashMap
 	 *
 	 * @param d - the document that is being added to the fullDataSet
+	 * @throws ParseException 
 	 * 
 	 */
-	public void addToFullDataSet(Document d){
-		MapPair test = new MapPair(d.dateCreated, d.company);
+	static public void addToFullDataSet(Document doc) throws ParseException{
+		MapPair test = new MapPair(doc.dateCreated, doc.company);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Date testDate;
+		testDate = sdf.parse("2015-03-26");
+		MapPair test2 = new MapPair(testDate, doc.company);
+		System.out.println(test.equals(test2));
 		if(fullDataSet.containsKey(test)){
+			System.out.println("contained key");
 			LinkedList<Document> newList = fullDataSet.get(test);
-			newList.add(d);
+			newList.add(doc);
+
 		} else{
+			System.out.println("did NOT contain key");
 			LinkedList<Document> newList = new LinkedList<Document>();
-			newList.add(d);
+			newList.add(doc);
 			fullDataSet.put(test, newList);
 		}
 	}
 	
-	
-	public static void main(String [] args){
-		String result = null;
-		String textField;
-		String textParse[];
-		String company;
-		String companyParse[];
-		String tweetId;
-		String tweetIdParse[];
-		String user;
-		String userParse[];
-		String date;
-		String dateParse[];
-		String unit[];
+	static public int monthTextToNumber(String s){
 		
-		try {
-			FileReader dataIn = new FileReader("data/2015-03-25-22.txt");
-			BufferedReader bReader = new BufferedReader(dataIn);
-			String theWholeStringManLikeWhoa;
-			while( (theWholeStringManLikeWhoa = bReader.readLine()) != null){
-				unit = theWholeStringManLikeWhoa.split("::::");
-				//now iterate over all units - each unit has 5 elements, so increment by 5
-				for(int i = 0; i < 25; i = i+5){
-					//grab and parse each element
-					company = unit[i+0];
-					companyParse = company.split(":", 2);
-					tweetId = unit[i+1];
-					tweetIdParse = tweetId.split(":", 2);
-					date = unit[i+2];
-					dateParse = date.split(":", 2);
-					user = unit[i+3];
-					userParse = user.split(":", 2);
-					textField = unit[i+4];
-					textParse = textField.split(":", 2);
-					
-					try{
-						Process p = new ProcessBuilder("/bin/bash", "src/redirectToJava.sh", textParse[1]).start();
-						System.out.println("got here");
-						p.waitFor();
-						BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-						String inputLine;
-						while((inputLine = in.readLine()) != null){
-							System.out.println(inputLine);
-							
-						}
-						in.close();
-					} catch (Exception e){
-						System.out.println("Failed");
-					}
-					
-				}
-				
-				
-			}
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		switch(s){
+		case "Mar": return 2;
+		case "Apr": return 3;
 		}
 		
+		return 0;
+		
+	}
+	
+	
+	public static void main(String [] args) throws ParseException, InterruptedException{
+
+		final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		final Date theDate = sdf.parse("2015-03-26");
+		final Lock locker = new ReentrantLock();
+		locker.lock();
+		
+		File inputFileFolder = new File("data");
+		File[] fileList = inputFileFolder.listFiles();
+		for(int i = 0; i < fileList.length; i++){
+			System.out.println(fileList[i]);
+		}
+		ExecutorService formatDataThreadPool = new ThreadPoolExecutor(10, 20, 10*60, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(40));
 		
 
+			
+			for( final File singleFile : fileList){
+				formatDataThreadPool.execute(new Runnable(){
+
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						Lock lock = new ReentrantLock();
+						String result = null;
+						String textField;
+						String textParse[];
+						String company;
+						String companyParse[] = null;
+						String tweetId;
+						String tweetIdParse[];
+						String user;
+						String userParse[];
+						String date;
+						String dateParse[];
+						String advDateParse[];
+						String unit[];
+						//Date theDate = new Date();
+						try{
+								FileReader dataIn = new FileReader(singleFile);
+								BufferedReader bReader = new BufferedReader(dataIn);
+								String theWholeStringManLikeWhoa;
+								while( (theWholeStringManLikeWhoa = bReader.readLine()) != null){
+									unit = theWholeStringManLikeWhoa.split("::::");
+									//now iterate over all units - each unit has 5 elements, so increment by 5
+									for(int i = 0; i < 25; i = i+5){
+										//grab and parse each element
+										System.out.println("running " + (i/5 + 1));
+										company = unit[i+0];
+										companyParse = company.split(":", 2);
+										tweetId = unit[i+1];
+										tweetIdParse = tweetId.split(":", 2);
+										date = unit[i+2];
+										dateParse = date.split(":", 2);
+										user = unit[i+3];
+										userParse = user.split(":", 2);
+										textField = unit[i+4];
+										textParse = textField.split(":", 2);
+										
+										advDateParse = dateParse[1].split(" ");
+										
+										//System.out.println(advDateParse[2]);
+										
+					
+					
+										
+										//System.out.println("date is " + theDate);
+										
+										
+										//user, date, company, text, tweetID
+										
+										
+										Document d = new Document(userParse[1], theDate, companyParse[1].replaceAll("\\s+", ""), textParse[1], tweetIdParse[1]);
+										d.buildWordList();
+										
+										synchronized(locker){
+											addToFullDataSet(d);
+										}
+										
+									}
+								}
+						}catch(Exception e){
+							e.printStackTrace();
+						}
+							
+						
+					}
+				});
+				
+						
+			}
+
+
+			
+			formatDataThreadPool.shutdown();
+			formatDataThreadPool.awaitTermination(2, TimeUnit.MINUTES);
+		
+		// a testing section
+		Date finalTestDate = sdf.parse("2015-03-26");
+
+		//System.out.println("date checked is " + mp.dateCreated + "  company is " + mp.company);
+		for(String com : companyList){
+			MapPair mp = new MapPair(finalTestDate, com);
+			if(fullDataSet.containsKey(mp)){
+				LinkedList<Document> l = fullDataSet.get(mp);
+				Iterator<Document> it = l.iterator();
+				while(it.hasNext()){
+					Document d = it.next();
+					System.out.println(d.company);
+					System.out.println(d.tweetID);
+					System.out.println(d.dateCreated);
+					System.out.println(d.user);
+					System.out.println(d.text);
+					System.out.println("-----------------");
+				}
+			}else {
+				System.out.println("key not contained");
+			}
+		
+		}
 	}
 	
 }
