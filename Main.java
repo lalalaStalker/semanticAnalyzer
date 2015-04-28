@@ -131,7 +131,7 @@ public class Main {
 								while( (theWholeStringManLikeWhoa = bReader.readLine()) != null){
 									unit = theWholeStringManLikeWhoa.split("::::");
 									//now iterate over all units - each unit has 5 elements, so increment by 5
-									for(int i = 0; i < 25; i = i+5){
+									for(int i = 0; i < 15; i = i+5){
 										//grab and parse each element
 										System.out.println("running " + (i/5 + 1));
 										company = unit[i+0];
@@ -159,7 +159,7 @@ public class Main {
 										
 										
 										Document d = new Document(userParse[1], theDate, companyParse[1].replaceAll("\\s+", ""), textParse[1], tweetIdParse[1]);
-										d.buildWordList();
+										//d.buildWordList();
 										
 										synchronized(locker){
 											addToFullDataSet(d);

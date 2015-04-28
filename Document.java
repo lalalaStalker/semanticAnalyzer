@@ -15,7 +15,7 @@ public class Document {
 	int totalWordCount;
 	String company;
 	
-	public void calculateSentiment(){
+	static public void calculateSentiment(){
 		//Stub method -- implement TODO here
 	}
 	
@@ -25,9 +25,10 @@ public class Document {
 		this.text = theText;
 		this.tweetID = theTweetID;
 		this.sentiment = 0;
-		//this.buildWordList();
+		this.buildWordList();
 		this.totalWordCount = 0;
 		this.company = theCompany;
+		this.calculateSentiment();
 	}
 	
 	public void buildWordList(){
@@ -38,7 +39,7 @@ public class Document {
 			p.waitFor();
 			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
-			while( (line = in.readLine()) != null){
+			while( (line = in.readLine()) != null ){
 				//this.totalWordCount++;
 				//System.out.println(line);
 				String parseLine[] = line.split("\\s+");
