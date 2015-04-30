@@ -83,7 +83,8 @@ public class Dictionary extends HashMap< String, Integer>{
 				this.totalWords+=oneWord;
 			}
 		}
-	}
+	}// End addAllToDictionary method
+	
 	
 	/**
 	 * Calculates the probability that a certain word appears in the dictionary.
@@ -94,8 +95,9 @@ public class Dictionary extends HashMap< String, Integer>{
 	 */
 	public double getProbability( String word){
 		
-//		double prob = Double.MIN_VALUE;  // TOO MANY VERY SMALL VALUES MAKES PROBABILITY TINY. DON'T USE PROBABILITIES = 0.0 ???????? 
-		double prob = 0.0;
+		double prob = 0.0;  //Double.MIN_VALUE??
+		
+		word = word.toLowerCase();
 		
 		if( this.containsKey( word)){
 			prob = ( (double) ((int)this.get( word)) / this.totalWords);
@@ -103,103 +105,4 @@ public class Dictionary extends HashMap< String, Integer>{
 		return prob;
 	}
 	
-
-//	/**
-//	 * Sentiment = 1/3 * probWord1InDictionary * probWord2InDictionary * ... * probWordnInDictionary
-//	 * 
-//	 * @return - Sentiment value: +1 for positive, 0 for neutral, -1 for negative
-//	 */
-//	public int calculateSentiment(){
-//		
-//		HashMap<String, Integer> wordList = new HashMap<String, Integer>();
-//		String[] posTweet = { "I", "love", "my", "beautiful", "new", "phone"};
-//		String[] negTweet = { "fuck", "this", "thing", "Never", "buy", "one"};
-//		
-//		double probSent = (1.0/3.0);  //Posititve, negative, or neutral sentiments possible
-//		double posProb, negProb;  //Probabilities to compare
-//		
-//		for( int i=0; i < posTweet.length; i++){  //Populate wordList
-//			wordList.put( posTweet[i], 1);
-//		}
-//		negProb = 0.0; posProb = probSent;
-//		
-////		for( int i=0; i < negTweet.length; i++){
-////			wordList.put( negTweet[i], 1);
-////		}
-////		negProb = probSent; posProb = 0.0;
-//		
-//		/*For every word in the tweet (wordList), get it's probability of appearing in each of the two 
-//		 * dictionaries. Multiply all probabilities for each dictionary.*/
-//		for( String key : wordList.keySet()){
-//			System.out.println( key);
-//			if( this.getProbability( key) != 0.0){
-//				posProb = posProb * (this.getProbability( key));
-////				System.out.println( this.getProbability( key));
-////				System.out.printf( "PosProb = %.8f\n",posProb);
-//			}
-//		}
-//		/*Choose the higher probability*/
-//		if( posProb > negProb){
-//			return 1;
-//		}
-//		else if( negProb > posProb){
-//			return -1;
-//		}
-//		else{
-//			return 0;
-//		}
-//	}
-	
-	
-	public static void main( String a[]){
-		
-		
-		Dictionary negDict = new Dictionary( "NegativeDictionary.txt");  //"more negative reviews tagged"//		
-		Dictionary posDict = new Dictionary( "PositiveDictionary.txt");  //"more positive reviews tagged" //80 words total (counting duplicates as separate)
-		
-//		System.out.println( "Sentiment = " + posDict.calculateSentiment());
-//		System.out.println( "Sentiment = " + negDict.calculateSentiment());
-		
-	
-		
-//		/**
-//		 * Adds an array of words to the dictionary.
-//		 * @param words - Array of Strings to add to the dictionary
-//		 */
-//		public void addAllToDictionary( String[] words){
-//			
-//			int oneWord = 1;
-//			
-//			for( int i=0; i<words.length; i++){
-//				if( this.containsKey( words[i])){
-//					int hasNum = (int)this.get( words[i]);
-//					this.put( words[i], ++hasNum);
-//					this.totalWords++;
-//				}
-//				else{
-//					this.put( words[i], oneWord);
-//					this.totalWords+=oneWord;
-//				}
-//			}
-//		}
-
-		
-//		/**
-//		 * Adds a certain number of a given word to the dictionary.
-//		 * @param word - String to add to dictionary
-//		 * @param freq - int number of occurrences of this word
-//		 */
-//		public void addToDictionary( String word, int freq){
-//			
-//			if( this.containsKey( word)){
-//				int hasNum = (int)this.get( word);
-//				this.put( word, hasNum+=freq);
-//				this.totalWords+=freq;
-//			}
-//			else{
-//				this.put( word, freq);
-//				this.totalWords+=freq;
-//			}
-//		}
-	}
 }
